@@ -10,6 +10,9 @@ ENV GOOGLE_APPLICATION_CREDENTIALS=/app/priv/gcp/service-account.json
 # ---------- APP SOURCE ----------
 COPY . .
 
+# Create the directory for the service account file
+RUN mkdir -p /app/priv/gcp
+
 # ---------- ELIXIR DEPS ----------
 RUN mix local.hex --force && mix local.rebar --force
 RUN mix deps.get
