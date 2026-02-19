@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:15
+    ports:
+      - 127.0.0.1:5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=echo_dev
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ./.volumes/postgres/data:/var/lib/postgresql/data/
+    networks:
+      - echo_net
+
+  app:
+    build: .
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: ecto://postgres:postgres@db:5432/echo_dev
+    ports:
+      - "4000:4000"
+    command: mix run --no-halt
+    networks:
+      - echo_net
+
+  # Test service - for running tests
+  test:
+    build: .
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: ecto://postgres:postgres@db:5432/echo_test
+      MIX_ENV: test
+    command: mix test
+    networks:
+      - echo_net
+    volumes:
+      - .:/app
+    profiles:
+      - test  # This prevents it from starting with 'docker compose up'
+      
+networks:
+  echo_net:
+    driver: bridge

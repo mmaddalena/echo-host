@@ -1,0 +1,78 @@
+:root {
+  --bg-main: #0b1220;
+  --bg-chatlist-panel: #111A2E;
+  --bg-chatlist-hover: #233356;
+  
+  --bg-peoplelist-panel: var(--bg-chatlist-panel);
+  --bg-peoplelist-hover: var(--bg-chatlist-hover);
+  --bg-peoplelist-muted: none;
+
+  --bg-chat: #0f172a;
+  --bg-chat-header: #141E36;
+  --bg-input: #233356;
+
+  --text-main-light: #f2f3f4;
+  --text-main-dark: #000000;
+  --text-main: var(--text-main-light);
+  --text-muted: #9aa4bf;
+
+  --avatar-border: #2f3e63;
+
+  --msg-in: var(--main-app-color-1);
+  --msg-out: var(--main-app-color-2);
+  --main-app-color-1: #2D4CBA;
+  --main-app-color-2: #742abf;
+  --second-main-app-color-1: #98DBFF;
+  --second-main-app-color-2: #CD9EFD;
+
+  --day-label: #00000079;
+
+  --msg-focused: #162446;
+
+  --accent: #5b8cff;
+  --accent-hover: rgb(44, 75, 147);
+
+  --left-section-width: 30%;
+
+  --scroll-bar: rgba(255, 255, 255, 0.25);
+  --scroll-bar-hover: rgba(255, 255, 255, 0.4);
+
+  --bg-logout: brown;
+
+  --bg-warning-panel: #3a1515;
+  --bg-warning-button: brown;
+  
+}
+
+/* Light theme */
+[data-theme="light"] {
+  --bg-main: #E6E6E6;
+  --bg-chatlist-panel: #D9D9D9;
+  --bg-chatlist-hover: #BCBCBC;
+  
+  --bg-peoplelist-panel: var(--bg-chatlist-panel);
+  --bg-peoplelist-muted: none;
+
+  --bg-chat: #E6E6E6;
+  --bg-chat-header: #CDCDCD;
+  --bg-input: #CDCDCD;
+
+  --text-main: var(--text-main-dark);
+  --text-muted: #5E5E5E;
+
+  --avatar-border: #999999;
+
+  --msg-in: var(--second-main-app-color-1);
+  --msg-out: var(--second-main-app-color-2);
+  --day-label: #00000017;
+
+  --msg-focused: #b9b9b9;
+
+  --accent: #5b8cff;
+
+  --scroll-bar: rgba(0, 0, 0, 0.25);
+  --scroll-bar-hover: rgba(0, 0, 0, 0.377);
+
+  --bg-warning-panel: #d4aeae;
+  --bg-warning-button: brown;
+}
