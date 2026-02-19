@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { generateId } from "@/utils/idGenerator";
 import { useThemeStore } from "@/stores/theme"
-
+const API_URL = import.meta.env.VITE_API_URL
 
 export const useSocketStore = defineStore("socket", () => {
 	const socket = ref(null);
@@ -32,7 +32,8 @@ export const useSocketStore = defineStore("socket", () => {
 		const protocol = location.protocol === "https:" ? "wss" : "ws";
 		socket.value = new WebSocket(
 			// `${protocol}://${location.host}/ws?token=${token}`,
-			`http://localhost:4000/ws?token=${token}`,
+			// `http://localhost:4000/ws?token=${token}`,
+			`${API_URL}/ws?token=${token}`,
 		);
 
 		socket.value.onopen = () => {

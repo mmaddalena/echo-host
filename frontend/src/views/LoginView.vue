@@ -14,15 +14,15 @@ const password = ref("12345678"); //TODO CAMBIAR A VACIO ("")
 const router = useRouter();
 const socketStore = useSocketStore();
 const errorMessage = ref(null)
-
+const API_URL = import.meta.env.VITE_API_URL
 
 async function handleLogin() {
 	errorMessage.value = null
 
 	try {
 		const res = await fetch(
-			"http://localhost:4000/api/login", 
-			//"/api/login", 
+			// "http://localhost:4000/api/login",
+			`${API_URL}/api/login`, 
 			{
 			method: "POST",
 			headers: { "Content-Type": "application/json" },

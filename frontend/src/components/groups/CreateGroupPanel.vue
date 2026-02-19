@@ -2,6 +2,8 @@
 import { ref, computed, watch } from "vue";
 import { useSocketStore } from "@/stores/socket";
 import { storeToRefs } from "pinia";
+const API_URL = import.meta.env.VITE_API_URL
+
 
 import GroupMemberSelector from "@/components/groups/GroupMemberSelector.vue";
 import IconClose from '@/components/icons/IconClose.vue';
@@ -97,8 +99,8 @@ async function uploadGroupAvatar(groupId, file) {
 
 	try {
 		const res = await fetch(
-			`http://localhost:4000/api/groups/${groupId}/avatar`,
-			//"/api/users/me/avatar",
+			// `http://localhost:4000/api/groups/${groupId}/avatar`,
+			`${API_URL}/api/groups/${groupId}/avatar`,
 			{
 				method: "POST",
 				headers: {
