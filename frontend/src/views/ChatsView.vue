@@ -3,6 +3,8 @@ import { computed, onMounted, watch, nextTick, ref} from "vue";
 
 import { useSocketStore } from "@/stores/socket";
 import { storeToRefs } from "pinia";
+const API_URL = import.meta.env.VITE_API_URL
+
 
 import Sidebar from "@/components/layout/Sidebar.vue";
 import ChatList from "@/components/chats/ChatList.vue";
@@ -119,13 +121,23 @@ async function handleSendAttachment(file) {
 	formData.append("file", file);
 
 	// 1. Upload via HTTP
-	const res = await fetch("/api/chat/upload", {
-		method: "POST",
-		headers: {
-			Authorization: `Bearer ${token}`,
+	// const res = await fetch("/api/chat/upload", {
+	// 	method: "POST",
+	// 	headers: {
+	// 		Authorization: `Bearer ${token}`,
+	// 	},
+	// 	body: formData,
+	// });
+	const res = await fetch(
+		`${API_URL}/api/chat/upload`,
+		{
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+			body: formData,
 		},
-		body: formData,
-	});
+	);
 
 	console.log(res);
 

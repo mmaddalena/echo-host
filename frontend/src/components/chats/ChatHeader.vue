@@ -3,6 +3,7 @@ import IconSearch from "../icons/IconSearch.vue";
 import IconOptsMenu from "../icons/IconOptsMenu.vue";
 import { computed, ref, watch } from "vue";
 import { formatAddedTime } from "@/utils/formatAddedTime";
+const API_URL = import.meta.env.VITE_API_URL
 
 
 
@@ -42,9 +43,13 @@ async function search() {
 		const token = sessionStorage.getItem("token");
 
 		const res = await fetch(
-			`/api/chats/${props.chatInfo.id}/search?q=${encodeURIComponent(
+			// `/api/chats/${props.chatInfo.id}/search?q=${encodeURIComponent(
+			// 	query.value,
+			// )}`,
+			`${API_URL}/api/chats/${props.chatInfo.id}/search?q=${encodeURIComponent(
 				query.value,
 			)}`,
+
 			{
 				headers: {
 					Authorization: `Bearer ${token}`,
