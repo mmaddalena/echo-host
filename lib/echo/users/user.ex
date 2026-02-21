@@ -8,7 +8,8 @@ defmodule Echo.Users.User do
   alias Echo.Contacts.Contacts
   alias Echo.ProcessRegistry
   alias Echo.Schemas.User, as: UserSchema
-  alias Echo.Schemas.Chat
+  alias Echo.Schemas.Chat, as: ChatSchema
+  alias Echo.Chats.Chat
   alias Echo.Schemas.ChatMember
   alias Echo.Schemas.Contact
   alias Echo.Schemas.Message
@@ -94,7 +95,7 @@ defmodule Echo.Users.User do
   end
 
   defp private_chats(user_id) do
-    from(chat in Chat,
+    from(chat in ChatSchema,
       join: cm in ChatMember,
       on: cm.chat_id == chat.id,
       where: cm.user_id == ^user_id and chat.type == "private",
@@ -135,13 +136,13 @@ defmodule Echo.Users.User do
         if(is_active?(chat.other_user_id), do: Constants.online(), else: Constants.offline())
       )
       |> Map.delete(:other_user_id)
-      |> Map.put(:unread_messages, get_unread_messages(user_id, chat.id))
+      |> Map.put(:unread_messages, Chat.get_unread_messages(user_id, chat.id))
       |> Map.put(:last_message, get_last_message(user_id, chat.id))
     end)
   end
 
   defp group_chats(user_id) do
-    from(chat in Chat,
+    from(chat in ChatSchema,
       join: cm in ChatMember,
       on: cm.chat_id == chat.id,
       where: cm.user_id == ^user_id and chat.type == "group",
@@ -157,7 +158,7 @@ defmodule Echo.Users.User do
     |> Enum.map(fn chat ->
       chat
       |> Map.put(:status, nil)
-      |> Map.put(:unread_messages, get_unread_messages(user_id, chat.id))
+      |> Map.put(:unread_messages, Chat.get_unread_messages(user_id, chat.id))
       |> Map.put(:last_message, get_last_message(user_id, chat.id))
     end)
   end
@@ -182,41 +183,6 @@ defmodule Echo.Users.User do
         IO.inspect("User #{user_id} is active")
         # if (UserSession.has_socket(pid))
         true
-    end
-  end
-
-  defp get_unread_messages(user_id, chat_id) do
-    # Find the chat member to get last_read_at
-    chat_member = Repo.get_by(ChatMember, chat_id: chat_id, user_id: user_id)
-
-    if is_nil(chat_member) do
-      0
-    else
-      # Count messages that are:
-      # 1. In the specified chat
-      # 2. Not deleted
-      # 3. Not sent by the user themselves
-      # 4. Created after the user joined the chat
-      # 5. Created after last_read_at (or all messages if last_read_at is nil)
-
-      query =
-        from m in Message,
-          where: m.chat_id == ^chat_id,
-          where: is_nil(m.deleted_at),
-          where: m.user_id != ^user_id
-
-      # Add condition for last_read_at if it exists
-      query =
-        if chat_member.last_read_at do
-          from m in query,
-            where: m.inserted_at > ^chat_member.last_read_at
-        else
-          query
-        end
-
-        # TODO si es grupal que agarre los mensajes desde que se inserto el member
-
-      Repo.aggregate(query, :count, :id)
     end
   end
 
@@ -393,7 +359,7 @@ defmodule Echo.Users.User do
           avatar_url: user.avatar_url,
           status: status,
           last_seen_at: user.last_seen_at,
-          private_chat_id: Echo.Chats.Chat.get_private_chat_id(person_id, asking_user_id)
+          private_chat_id: Chat.get_private_chat_id(person_id, asking_user_id)
         }
 
         if contact do
@@ -410,6 +376,16 @@ defmodule Echo.Users.User do
     end
   end
 
+  def update_last_seen_at(user_id, datetime) do
+    case Repo.get(UserSchema, user_id) do
+      nil -> {:error, :not_found}
+      user ->
+        user
+        |> Ecto.Changeset.change(last_seen_at: datetime)
+        |> Repo.update()
+    end
+    IO.inspect("\n\nUSER LAST_SEEN_AT UPDATED TO: #{datetime}")
+  end
 
   def search_users(asking_user, input) do
     query =

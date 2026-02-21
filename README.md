@@ -43,7 +43,7 @@ procesos.
 - **OAuth (Goth + Google Cloud)**: Autenticación para servicios de media.
 
 ### Frontend
-- **Vue 3**: SPA basada en componentes.
+- **Vue 3**: Framework para construir un SPA basado en componentes.
 - **Vue Router**: Sistema de vistas y guards de autenticación.
 - **State stores**: Socket, UI, theme. (JavaScript).
 
@@ -142,7 +142,7 @@ Esta tabla intermedia define la relación usuario ↔ chat. Esta relación se en
 - Última vez que se leyó el chat.
 
 ---
-#### **Mensajes **
+#### **Mensajes**
 
 Cada mensaje:
 - Pertenece a un chat.
@@ -167,10 +167,10 @@ Además:
 
 El schema ``BlockedContact`` ya está preparado para:
 
--Bloqueos entre usuarios.
--Clave compuesta (blocker + blocked).
--Evitar bloquearse a uno mismo.
--Evitar duplicados.
+- Bloqueos entre usuarios.
+- Clave compuesta (blocker + blocked).
+- Evitar bloquearse a uno mismo.
+- Evitar duplicados.
 
 Y aunque no esté implementado aún, está listo para:
 - Ocultar mensajes.
@@ -333,14 +333,14 @@ En el `router` se determinan dos valores `requiresAuth:bool` y `guestOnly:bool` 
 	- Selección de chat.
 	- Estados de interfaz.
 
-### ChatsView - Orquestador
+### ``ChatsView`` - Orquestador
 Es el centro de coordinación.
 - Los componentes:
 	- No conocen websocket.
 	- No conocen el backend.
-	- Solamente muestran los datos que les pasa ChatsView y emiten intenciones del cliente.
+	- Solamente muestran los datos que les pasa ``ChatsView`` y emiten intenciones del cliente.
 
-### ChatsView - Orquestador
-Funciona como una sub-view dentro de ChatsView, ya que accede al socket, maneja estado real de los usuarios y dispara eventos importantes.<br>
+### ``PeoplePanel``
+Funciona como una sub-view dentro de ``ChatsView``, ya que accede al socket, maneja estado real de los usuarios y dispara eventos importantes.<br>
 Su función principal es la de mostrar los contactos y la búsqueda de usuarios.
 

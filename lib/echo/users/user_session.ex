@@ -155,7 +155,6 @@ defmodule Echo.Users.UserSession do
       user: user,
       socket: nil,
       current_chat_id: nil,
-      last_activity: DateTime.utc_now(),
       disconnect_timer: nil
     }
 
@@ -170,6 +169,9 @@ defmodule Echo.Users.UserSession do
     |> send_user_info()
     |> mark_pending_messages_delivered()
 
+    # Broadcast that user is now online
+    broadcast_user_status(state.user_id, true)
+
     {:noreply, new_state}
   end
 
@@ -181,7 +183,7 @@ defmodule Echo.Users.UserSession do
         {:ok, cs_pid} = ChatSessionSup.get_or_start(chat_id)
         ChatSession.get_chat_info(cs_pid, state.user_id, self())
 
-        {:noreply, %{state | last_activity: DateTime.utc_now()}}
+        {:noreply, state}
 
       false ->
         # User is no longer member → reject
@@ -194,7 +196,7 @@ defmodule Echo.Users.UserSession do
 
         IO.puts("\nUser tried to open forbidden chat #{chat_id}\n")
 
-        {:noreply, %{state | last_activity: DateTime.utc_now()}}
+        {:noreply, state}
     end
   end
 
@@ -208,7 +210,7 @@ defmodule Echo.Users.UserSession do
 
     send(state.socket, {:send, msg})
 
-    {:noreply, %{state | last_activity: DateTime.utc_now()}}
+    {:noreply, state}
   end
 
 
@@ -218,7 +220,7 @@ defmodule Echo.Users.UserSession do
 
     ChatSession.send_message(cs_pid, front_msg, self())
 
-    {:noreply, %{state | last_activity: DateTime.utc_now()}}
+    {:noreply, state}
   end
 
   @impl true
@@ -231,7 +233,7 @@ defmodule Echo.Users.UserSession do
       send(state.socket, {:send, msg})
     end
 
-    {:noreply, %{state | last_activity: DateTime.utc_now()}}
+    {:noreply, state}
   end
 
   @impl true
@@ -240,7 +242,7 @@ defmodule Echo.Users.UserSession do
 
     ChatSession.chat_messages_read(cs_pid, chat_id, state.user_id)
 
-    {:noreply, %{state | last_activity: DateTime.utc_now()}}
+    {:noreply, state}
   end
 
   @impl true
@@ -251,7 +253,7 @@ defmodule Echo.Users.UserSession do
       reader_user_id: reader_user_id
     }
     if state.socket, do: send(state.socket, {:send, msg})
-    {:noreply, %{state | last_activity: DateTime.utc_now()}}
+    {:noreply, state}
   end
 
   @impl true
@@ -596,7 +598,7 @@ defmodule Echo.Users.UserSession do
 
   def handle_cast({:send_payload, payload}, state) do
     send(state.socket, {:send, payload})
-    {:noreply, %{state | last_activity: DateTime.utc_now()}}
+    {:noreply, state}
   end
 
   ################### Helpers
@@ -622,7 +624,7 @@ defmodule Echo.Users.UserSession do
 
     send(state.socket, {:send, user_info})
 
-    %{state | last_activity: DateTime.utc_now()}
+    state
   end
   defp mark_pending_messages_delivered(state) do
     messages = Messages.get_sent_messages_for_user(state.user_id)
@@ -687,6 +689,33 @@ defmodule Echo.Users.UserSession do
     end)
   end
 
+  defp broadcast_user_status(user_id, is_online) do
+    # Get the user to include last_seen_at
+    user = User.get(user_id)
+
+    payload = %{
+      type: "user_status_changed",
+      user_id: user_id,
+      is_online: is_online,
+      last_seen_at: user.last_seen_at
+    }
+
+    # Get users from contacts AND chat partners
+    contact_users = Contacts.get_users_with_contact(user_id)
+    chat_partners = Chat.get_chat_partners(user_id)
+
+    # Combine and deduplicate
+    relevant_users = Enum.uniq(contact_users ++ chat_partners)
+
+    # Send only to online sessions
+    Enum.each(relevant_users, fn relevant_user_id ->
+      case ProcessRegistry.whereis_user_session(relevant_user_id) do
+        nil -> :ok
+        us_pid -> send_payload(us_pid, payload)
+      end
+    end)
+  end
+
   ################### Calls
 
   @impl true
@@ -696,12 +725,25 @@ defmodule Echo.Users.UserSession do
 
   @impl true
   def handle_call(:logout, _from, state) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    User.update_last_seen_at(state.user_id, now)
+
+    broadcast_user_status(state.user_id, false)
+
     ProcessRegistry.unregister_user_session(state.user_id)
     {:stop, :normal, :ok, %{state | socket: nil}}
   end
 
   @impl true
-  def terminate(_reason, _state) do
+  def terminate(reason, state) do
+    if state.user_id != nil and reason != :normal do
+
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+      User.update_last_seen_at(state.user_id, now)
+
+      broadcast_user_status(state.user_id, false)
+    end
     :ok
   end
 

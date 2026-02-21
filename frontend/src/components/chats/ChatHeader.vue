@@ -3,9 +3,8 @@ import IconSearch from "../icons/IconSearch.vue";
 import IconOptsMenu from "../icons/IconOptsMenu.vue";
 import { computed, ref, watch } from "vue";
 import { formatAddedTime } from "@/utils/formatAddedTime";
+
 const API_URL = import.meta.env.VITE_API_URL
-
-
 
 const emit = defineEmits(["scroll-to-message", "open-chat-info"]);
 
@@ -14,7 +13,7 @@ const props = defineProps({
 		type: Object,
 		default: null,
 	},
-	last_seen_at: { type: String, default: null },
+	// last_seen_at: { type: String, default: null },
 	currentUserId: { type: [String, Number], default: null },
 });
 
@@ -128,9 +127,26 @@ function toggleSearch(){
 }
 
 function openChatInfo() {
-	props.chatInfo.last_seen_at = props.last_seen_at;
+	// props.chatInfo.last_seen_at = props.last_seen_at;
 	emit("open-chat-info", props.chatInfo);
+
+	console.log(props.chatInfo)
 }
+
+const otherMember = computed(() => {
+  if (!props.chatInfo?.members || props.chatInfo.type !== 'private') return null
+  
+  return props.chatInfo.members.find(
+    member => String(member.user_id) !== String(props.currentUserId)
+  )
+})
+
+const shouldShowLastSeen = computed(() => {
+  return props.chatInfo.status === 'Offline' && 
+         otherMember.value && 
+         otherMember.value.last_seen_at
+})
+
 </script>
 
 <template>
@@ -147,9 +163,9 @@ function openChatInfo() {
 				<span class="status">
 					<p v-if="chatInfo.type == 'private'">
 						{{ chatInfo.status }}
-						<span v-if="chatInfo.status == 'Offline' && last_seen_at">
+						<span v-if="shouldShowLastSeen">
 							- Ultima vez activo
-							{{ formatAddedTime(last_seen_at) }}
+							{{ formatAddedTime(otherMember.last_seen_at) }}
 						</span>
 					</p>
 					<p v-else>{{ membersStr }}</p>

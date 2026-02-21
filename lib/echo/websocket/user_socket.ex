@@ -3,6 +3,7 @@ defmodule Echo.WS.UserSocket do
 
   require Logger
   alias Echo.Users.UserSession
+  alias Echo.Constants
 
   # Handshake inicial. Decide si este proceso en HTTP se convierte a WS
   @impl true
@@ -18,7 +19,7 @@ defmodule Echo.WS.UserSocket do
               authenticated: true
             }
 
-            {:cowboy_websocket, req, state, %{idle_timeout: 300_000}}
+            {:cowboy_websocket, req, state, %{idle_timeout: Constants.idle_timeout()}}
 
           {:error, :token_expired} ->
             Logger.warning("Token expired for WebSocket connection", nil)
@@ -45,8 +46,6 @@ defmodule Echo.WS.UserSocket do
 
     {:ok, %{state | user_session: us_pid}}
   end
-
-
 
 
   # Mensajes que llegan DESDE el cliente

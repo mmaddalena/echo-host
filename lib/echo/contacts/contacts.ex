@@ -11,6 +11,14 @@ defmodule Echo.Contacts.Contacts do
     |> Repo.all()
   end
 
+  def get_users_with_contact(contact_user_id) do
+    query = from c in Contact,
+            where: c.contact_id == ^contact_user_id,
+            select: c.user_id
+
+    Echo.Repo.all(query)
+  end
+
   def get_contact_between(owner_user_id, contact_id) do
     from(c in Contact,
       where:

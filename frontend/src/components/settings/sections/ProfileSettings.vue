@@ -3,7 +3,9 @@ import { ref, nextTick, computed, onMounted, watch } from "vue";
 import { useSocketStore } from "@/stores/socket";
 import IconEdit from "@/components/icons/IconEdit.vue";
 import IconConfirm from "@/components/icons/IconConfirm.vue";
+
 const API_URL = import.meta.env.VITE_API_URL
+
 const socketStore = useSocketStore();
 
 const uploading = ref(false);

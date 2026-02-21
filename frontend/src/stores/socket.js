@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { generateId } from "@/utils/idGenerator";
 import { useThemeStore } from "@/stores/theme"
+
 const API_URL = import.meta.env.VITE_API_URL
 
 export const useSocketStore = defineStore("socket", () => {
@@ -106,8 +107,10 @@ export const useSocketStore = defineStore("socket", () => {
 			} else if (payload.type === 'admin_given_to_member') {
 				dispatch_admin_given_to_member(payload)
 			} else if (payload.type === 'group_avatar_updated') {
-				console.log(`Payload de group avatar updated: `, payload);
 				dispatch_group_avatar_updated(payload)
+			} else if (payload.type === "user_status_changed") {
+				console.log("user status changedddddd!")
+				dispatch_user_status_changed(payload);
 			}
 		};
 
@@ -191,6 +194,9 @@ export const useSocketStore = defineStore("socket", () => {
 			};
 
 			const chat = chatsInfo.value[chatId];
+			
+			const isActive = chatId === activeChatId.value
+			const isIncoming = msg.user_id !== userInfo.value.id
 
 			if (chat) {
 				chatsInfo.value = {
@@ -198,6 +204,9 @@ export const useSocketStore = defineStore("socket", () => {
 					[chatId]: {
 						...chat,
 						messages: [...chat.messages, normalizedMsg],
+						unread_messages: (!isActive && isIncoming)
+							? chat.unread_messages + 1
+							: chat.unread_messages
 					},
 				};
 			}
@@ -703,9 +712,71 @@ export const useSocketStore = defineStore("socket", () => {
 		});
 	}
 
+	function dispatch_user_status_changed(payload) {
+		const { user_id, is_online, last_seen_at } = payload;
+
+		// 2. Update opened person info
+		if (openedPersonInfo.value?.id === user_id) {
+			openedPersonInfo.value = {
+			...openedPersonInfo.value,
+			status: is_online ? 'Online' : 'Offline',
+			last_seen_at: last_seen_at || openedPersonInfo.value.last_seen_at
+			};
+		}
+
+		// 3. Update chatsInfo (the detailed chat cache)
+		const updatedChatsInfo = { ...chatsInfo.value };
+		let hasUpdates = false;
+
+		Object.entries(chatsInfo.value).forEach(([chatId, chat]) => {
+			let chatUpdated = false;
+			
+			// Update members array
+			const updatedMembers = chat.members?.map(member => {
+			if (member.user_id === user_id) {
+				chatUpdated = true;
+				return {
+				...member,
+				last_seen_at: last_seen_at || member.last_seen_at
+				};
+			}
+			return member;
+			});
+
+			// For private chats, update the status field
+			if (chat.type === 'private') {
+				const isUserInChat = chat.members?.some(m => m.user_id === user_id);
+				
+				if (isUserInChat) {
+					chatUpdated = true;
+					updatedChatsInfo[chatId] = {
+					...chat,
+					status: is_online ? 'Online' : 'Offline',
+					members: updatedMembers || chat.members
+					};
+				}
+			} 
+			// For group chats, only update members
+			else if (chat.type === 'group' && chatUpdated) {
+				updatedChatsInfo[chatId] = {
+					...chat,
+					members: updatedMembers
+				};
+			}
+
+			if (chatUpdated) {
+			hasUpdates = true;
+			}
+		});
+
+		if (hasUpdates) {
+			chatsInfo.value = updatedChatsInfo;
+		}
+	}
+
 	function disconnect() {
 		if (socket.value) {
-			send({ type: "logout" });
+			send({ type: "logout"});
 			socket.value.close();
 		}
 		socket.value = null;
@@ -738,10 +809,23 @@ export const useSocketStore = defineStore("socket", () => {
 			socket.value.send(JSON.stringify(data));
 		} else {
 			console.error("El socket no está abierto");
+			disconnect();
 		}
 	}
 
 	function openChat(chatId) {
+		// Primero seteamos el unread_messages del actual en 0.
+		const chat = chatsInfo.value[activeChatId.value]
+		if (activeChatId.value && chat)
+		chatsInfo.value = {
+				...chatsInfo.value,
+				[activeChatId.value]: {
+					...chat,
+					unread_messages: 0,
+				},
+			};
+
+		// Ahora sí, hacemos el open del siguiente chat.
 		pendingPrivateChat.value = null;
 		pendingMessage.value = null;
 

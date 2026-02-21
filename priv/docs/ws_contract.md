@@ -437,8 +437,10 @@ Fields:
     - name: string
     - avatar_url: url
     - last_read_at: ISOTimeString
+    - last_seen_at: ISOTimeString
     - nickname: string
     - role: "member | admin"
+  - unread_messages: Integer
 
 <details>
 <summary>Example</summary>
@@ -481,7 +483,8 @@ Fields:
         "role": "member | admin"
       },
       ...
-    ]
+    ],
+    "unread_messages": "integer"
   }
 }
 ```

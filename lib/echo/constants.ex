@@ -30,4 +30,6 @@ defmodule Echo.Constants do
   def max_search_results(), do: 50
 
   def session_timeout(), do: 500
+
+  def idle_timeout(), do: 1000 * 60 * 10
 end

@@ -13,7 +13,6 @@ import { watch } from "vue";
 const socketStore = useSocketStore();
 
 const activeTab = ref("all");
-const { activeChatId } = storeToRefs(socketStore);
 const { chats } = storeToRefs(socketStore);
 
 const contactSearchText = ref(null);

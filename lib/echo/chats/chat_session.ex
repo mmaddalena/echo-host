@@ -67,10 +67,9 @@ defmodule Echo.Chats.ChatSession do
       chat: Chat.get(chat_id),
       last_messages: Chat.get_last_messages(chat_id),
       members: Chat.get_members(chat_id),
-      last_activity: DateTime.utc_now()
     }
 
-    {:ok, %{state | last_activity: DateTime.utc_now()}}
+    {:ok, state}
   end
 
   @impl true
@@ -79,7 +78,7 @@ defmodule Echo.Chats.ChatSession do
 
     UserSession.send_chat_info(us_pid, chat_info)
 
-    {:noreply, %{state | last_activity: DateTime.utc_now()}}
+    {:noreply, state}
   end
 
 
@@ -226,13 +225,12 @@ defmodule Echo.Chats.ChatSession do
         {:noreply,
          %{
            state
-           | last_activity: DateTime.utc_now(),
-             last_messages: [base_message | state.last_messages]
+            | last_messages: [base_message | state.last_messages]
          }}
 
       {:error, _changeset} ->
         # UserSession.send_message_error(sender_us_pid, front_msg_id, changeset)
-        {:noreply, %{state | last_activity: DateTime.utc_now()}}
+        {:noreply, state}
     end
   end
 
@@ -260,7 +258,7 @@ defmodule Echo.Chats.ChatSession do
       end
     end)
 
-    {:noreply, %{state | last_messages: new_last_messages, last_activity: DateTime.utc_now()}}
+    {:noreply, %{state | last_messages: new_last_messages}}
   end
 
   @impl true
@@ -287,7 +285,7 @@ defmodule Echo.Chats.ChatSession do
         end
 
         {:noreply,
-        %{state | members: new_members, last_activity: DateTime.utc_now()}}
+        %{state | members: new_members}}
 
       "chat_members_added" ->
         new_members = Chat.get_members(state.chat_id)
@@ -314,7 +312,7 @@ defmodule Echo.Chats.ChatSession do
           end
         end)
 
-        {:noreply, %{state | members: new_members, last_activity: DateTime.utc_now()}}
+        {:noreply, %{state | members: new_members}}
 
       "chat_admin_changed" ->
         new_admin_id = payload.new_admin_id
@@ -335,7 +333,7 @@ defmodule Echo.Chats.ChatSession do
           end
         end)
 
-        {:noreply, %{state | members: new_members, last_activity: DateTime.utc_now()}}
+        {:noreply, %{state | members: new_members}}
   end
 end
 

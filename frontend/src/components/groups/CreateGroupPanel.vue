@@ -2,12 +2,13 @@
 import { ref, computed, watch } from "vue";
 import { useSocketStore } from "@/stores/socket";
 import { storeToRefs } from "pinia";
-const API_URL = import.meta.env.VITE_API_URL
-
 
 import GroupMemberSelector from "@/components/groups/GroupMemberSelector.vue";
 import IconClose from '@/components/icons/IconClose.vue';
 import IconImage from '@/components/icons/IconImage.vue';
+
+const API_URL = import.meta.env.VITE_API_URL
+
 
 const emit = defineEmits(["close"]);
 

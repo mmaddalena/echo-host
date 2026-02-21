@@ -29,7 +29,12 @@ defmodule Echo.Users.UserSessionSup do
 
 
   defp start_session(user_id) do
-    spec = {Echo.Users.UserSession, user_id}
+
+    spec = %{
+      id: {Echo.Users.UserSession, user_id},
+      start: {Echo.Users.UserSession, :start_link, [user_id]},
+      restart: :temporary
+    }
 
     case DynamicSupervisor.start_child(__MODULE__, spec) do
       {:ok, pid} ->

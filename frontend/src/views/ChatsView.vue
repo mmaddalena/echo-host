@@ -3,8 +3,6 @@ import { computed, onMounted, watch, nextTick, ref} from "vue";
 
 import { useSocketStore } from "@/stores/socket";
 import { storeToRefs } from "pinia";
-const API_URL = import.meta.env.VITE_API_URL
-
 
 import Sidebar from "@/components/layout/Sidebar.vue";
 import ChatList from "@/components/chats/ChatList.vue";
@@ -24,6 +22,8 @@ import { useThemeStore } from "@/stores/theme"
 import logoLight from "@/assets/logo/Echo_Logo_Completo.svg";
 import logoDark from "@/assets/logo/Echo_Logo_Completo_Negativo.svg";
 
+
+const API_URL = import.meta.env.VITE_API_URL
 
 const themeStore = useThemeStore()
 const theme = computed(() => themeStore.theme)
@@ -121,13 +121,6 @@ async function handleSendAttachment(file) {
 	formData.append("file", file);
 
 	// 1. Upload via HTTP
-	// const res = await fetch("/api/chat/upload", {
-	// 	method: "POST",
-	// 	headers: {
-	// 		Authorization: `Bearer ${token}`,
-	// 	},
-	// 	body: formData,
-	// });
 	const res = await fetch(
 		`${API_URL}/api/chat/upload`,
 		{
@@ -287,7 +280,6 @@ function handleCloseChatInfo() {
 		<div class="right">
 			<ChatHeader
 				:chatInfo="activeChat"
-				:last_seen_at="userInfo?.last_seen_at"
 				:currentUserId="userInfo?.id"
 				@scroll-to-message="scrollToMessage"
 				@open-chat-info="handleOpenChatInfo"
@@ -295,6 +287,7 @@ function handleCloseChatInfo() {
 			<ChatMessages
 				:messages="messages"
 				:chatType="chatType"
+				:unreadMessages="activeChat?.unread_messages"
 				ref="chatMessagesRef"
 			/>
 			<ChatInput
