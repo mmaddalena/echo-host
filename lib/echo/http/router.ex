@@ -42,7 +42,7 @@ defmodule Echo.Http.Router do
     CORSPlug.init(
       origin: [
         "http://localhost:5173",
-        "https://*.onrender.com"
+        "https://echo-host.onrender.com"
       ],
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       headers: ["Content-Type", "Authorization"]
