@@ -109,7 +109,6 @@ export const useSocketStore = defineStore("socket", () => {
 			} else if (payload.type === 'group_avatar_updated') {
 				dispatch_group_avatar_updated(payload)
 			} else if (payload.type === "user_status_changed") {
-				console.log("user status changedddddd!")
 				dispatch_user_status_changed(payload);
 			}
 		};
@@ -1099,7 +1098,22 @@ export const useSocketStore = defineStore("socket", () => {
 	function changeGroupAvatar(chatId, avatarUrl) {
 		if (!chatsInfo.value[chatId]) return
 
-		chatsInfo.value[chatId].avatar_url = avatarUrl
+		// Create new references to trigger reactivity
+		chatsInfo.value = {
+			...chatsInfo.value,
+			[chatId]: {
+				...chatsInfo.value[chatId],
+				avatar_url: avatarUrl
+			}
+		};
+
+		// Also update the chat in the chats list
+		chats.value = chats.value.map(chat => {
+			if (chat.id === chatId) {
+				return { ...chat, avatar_url: avatarUrl };
+			}
+			return chat;
+		});
 	}
 
 	return {

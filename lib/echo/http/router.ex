@@ -174,7 +174,6 @@ defmodule Echo.Http.Router do
     case String.split(rest, "/") do
       [group_id, "avatar"] ->
         handle_group_avatar_upload(conn, group_id)
-
       _ ->
         conn
         |> put_resp_content_type("application/json")
